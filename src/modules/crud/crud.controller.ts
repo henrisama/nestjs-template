@@ -9,12 +9,14 @@ import {
   Post,
   Put,
   Type,
+  UseFilters,
   UsePipes,
   ValidationPipe,
 } from "@nestjs/common";
 import { ICrudService } from "./crud.service";
 import { DeleteResult, UpdateResult } from "typeorm";
 import { ApiBody, ApiTags } from "@nestjs/swagger";
+import { ControllerExceptionFilter } from "src/filters/filter-errors";
 
 export function generateController<T>(
   entity: Type<T>,
@@ -25,6 +27,7 @@ export function generateController<T>(
   const name = entity.name.toLowerCase();
 
   @ApiTags(entity.name)
+  @UseFilters(new ControllerExceptionFilter())
   @Controller(name)
   class CrudController {
     constructor(
