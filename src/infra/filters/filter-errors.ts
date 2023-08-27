@@ -16,7 +16,13 @@ export class ControllerExceptionFilter implements ExceptionFilter {
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
-    const message = exception.message || "Internal server error";
+    let responseMessage: any;
+    if (exception.response) {
+      responseMessage = exception.response.message || null;
+    }
+
+    const message =
+      responseMessage || exception.message || "Internal server error";
 
     response.status(status).json({
       statusCode: status,

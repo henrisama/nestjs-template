@@ -1,7 +1,6 @@
-import "dotenv/config";
 import { TypeOrmModuleOptions } from "@nestjs/typeorm";
 
-type SupportedDatabases = "mysql" | "postgres" | "mongodb" | "sqlite";
+type SupportedDatabases = "mysql" | "postgres";
 
 export const typeOrmModuleOptions: TypeOrmModuleOptions = {
   type: process.env.TYPEORM_TYPE as SupportedDatabases,
@@ -11,7 +10,7 @@ export const typeOrmModuleOptions: TypeOrmModuleOptions = {
   password: process.env.TYPEORM_PASSWORD,
   database: process.env.TYPEORM_DATABASE,
   entities: ["dist/modules/**/*.entity.js"],
-  migrations: ["dist/db/migrations/**/*.js"],
+  migrations: ["dist/infra/db/typeorm/migrations/**/*.js"],
   migrationsRun: true,
   logging: true,
   logger: "file",

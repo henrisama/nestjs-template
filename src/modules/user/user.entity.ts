@@ -1,16 +1,11 @@
 import { ulid } from "ulid";
-import * as bcrypt from "bcrypt";
-import { BaseEntity } from "src/db/base.entity";
-import { saltOrRounds } from "src/conf/api.conf";
-import { Entity, Column, BeforeInsert, PrimaryColumn } from "typeorm";
-import { IName, IUser } from "src/interfaces/user.interface";
+import { BaseEntity } from "src/infra/db/typeorm/base.entity";
+import { Entity, Column, PrimaryColumn } from "typeorm";
 
-export class Name implements IName {
-  @Column("varchar", { length: 30 })
-  first: string;
-
-  @Column("varchar", { length: 30 })
-  last: string;
+export interface IUser {
+  name: string;
+  email: string;
+  password: string;
 }
 
 @Entity({ name: "User" })
@@ -29,11 +24,6 @@ export class User extends BaseEntity implements IUser {
   @Column("varchar", { length: 256 })
   password: string;
 
-  @Column(() => Name)
-  name: Name;
-
-  @BeforeInsert()
-  async encryptPassword() {
-    this.password = await bcrypt.hash(this.password, saltOrRounds);
-  }
+  @Column("varchar", { length: 256 })
+  name: string;
 }
