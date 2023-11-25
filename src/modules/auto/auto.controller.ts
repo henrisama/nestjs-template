@@ -50,7 +50,7 @@ export function generateController<T>(
     }
 
     @Get(":id")
-    findOneById(@Param("id") id: string): Promise<T> {
+    findOneById(@Param("id") id: IdType): Promise<T> {
       return this.service.findOneById(id);
     }
 
@@ -64,22 +64,22 @@ export function generateController<T>(
     @Put(":id")
     @ApiBody({ type: updateDto })
     @UsePipes(new ValidationPipe({ expectedType: updateDto, transform: true }))
-    update(@Param("id") id: string, @Body() data: Partial<T>): Promise<T> {
+    update(@Param("id") id: IdType, @Body() data: Partial<T>): Promise<T> {
       return this.service.update(id, data);
     }
 
     @Delete(":id")
-    delete(@Param("id") id: string): Promise<T> {
+    delete(@Param("id") id: IdType): Promise<T> {
       return this.service.delete(id);
     }
 
     @Put(":id/softdelete")
-    softDelete(@Param("id") id: string): Promise<void> {
+    softDelete(@Param("id") id: IdType): Promise<void> {
       return this.service.softDelete(id);
     }
 
     @Put(":id/restore")
-    restore(@Param("id") id: string): Promise<void> {
+    restore(@Param("id") id: IdType): Promise<void> {
       return this.service.restore(id);
     }
   }

@@ -1,8 +1,13 @@
+import { ApiProperty } from "@nestjs/swagger";
+
 export type IdType = string;
 
 export class PaginationDto {
+  @ApiProperty()
   readonly page?: number;
+  @ApiProperty()
   readonly limit?: number;
+  @ApiProperty()
   readonly search?: string;
 }
 
