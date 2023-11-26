@@ -5,15 +5,12 @@ import { generateService } from "./auto.service";
 import { generateController } from "./auto.controller";
 import { generateTypeormRepository } from "src/infra/db/typeorm/repository.db";
 import { generateMongoRepository } from "src/infra/db/mongo/repository.db";
-
-export enum DatabaseAdapter {
-  TYPEORM = "typeorm",
-  MONGO = "mongo",
-}
+import { DatabaseAdapter, DatabaseAdapterEnum } from "src/conf/db.conf";
 
 interface EntityModuleOptions {
   schema: any;
-  adapter: DatabaseAdapter;
+  service?: any;
+  controller?: any;
   createDto?: any;
   updateDto?: any;
 }
@@ -21,20 +18,23 @@ interface EntityModuleOptions {
 export class EntityModule {
   static forFeature<T>(options: EntityModuleOptions): any {
     const repositoryGen =
-      options.adapter === DatabaseAdapter.TYPEORM
+      DatabaseAdapter === DatabaseAdapterEnum.TYPEORM
         ? generateTypeormRepository<T>(options.schema)
         : generateMongoRepository<T>();
 
-    const serviceGen = generateService<T>(options.schema);
-    const controllerGen = generateController<T>(
-      options.schema,
-      options.createDto,
-      options.updateDto,
-    );
+    const serviceGen = options.service ?? generateService<T>(options.schema);
+
+    const controllerGen =
+      options.controller ??
+      generateController<T>(
+        options.schema,
+        options.createDto,
+        options.updateDto,
+      );
 
     @Module({
       imports: [
-        options.adapter === DatabaseAdapter.TYPEORM
+        DatabaseAdapter === DatabaseAdapterEnum.TYPEORM
           ? TypeOrmModule.forFeature([options.schema])
           : MongooseModule.forFeature([
               {

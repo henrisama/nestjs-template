@@ -2,7 +2,7 @@ import {
   Controller,
   Get,
   Post,
-  Put,
+  Patch,
   Delete,
   Param,
   Body,
@@ -12,11 +12,13 @@ import {
   UsePipes,
   ValidationPipe,
   UseFilters,
+  HttpStatus,
+  HttpCode,
 } from "@nestjs/common";
 import { paramCase } from "change-case";
 import { ServicePort } from "./auto.service";
 import { IdType, PaginationDto } from "src/infra/db/repository.port";
-import { ApiBody, ApiTags } from "@nestjs/swagger";
+import { ApiBody, ApiTags, ApiResponse } from "@nestjs/swagger";
 import { ControllerExceptionFilter } from "src/infra/filters/filter-errors";
 
 export abstract class ControlerPort<T> {
@@ -45,40 +47,100 @@ export function generateController<T>(
     }
 
     @Get()
+    @HttpCode(HttpStatus.OK)
+    @ApiResponse({
+      status: HttpStatus.OK,
+      description: "List of all records",
+      type: [createDto],
+    })
     findAll(@Query() paginationDto: PaginationDto): Promise<T[]> {
       return this.service.findAll(paginationDto);
     }
 
     @Get(":id")
-    findOneById(@Param("id") id: IdType): Promise<T> {
-      return this.service.findOneById(id);
+    @HttpCode(HttpStatus.OK)
+    @ApiResponse({
+      status: HttpStatus.OK,
+      description: "The record with the given ID",
+      type: createDto,
+    })
+    @ApiResponse({
+      status: HttpStatus.NOT_FOUND,
+      description: "Record not found",
+    })
+    async findOneById(@Param("id") id: IdType): Promise<T> {
+      return await this.service.findOneById(id);
     }
 
     @Post()
+    @HttpCode(HttpStatus.CREATED)
     @ApiBody({ type: createDto })
+    @ApiResponse({
+      status: HttpStatus.CREATED,
+      description: "Record created successfully",
+      type: createDto,
+    })
+    @ApiResponse({
+      status: HttpStatus.BAD_REQUEST,
+      description: "Bad request",
+    })
     @UsePipes(new ValidationPipe({ expectedType: createDto, transform: true }))
     create(@Body() data: T): Promise<T> {
       return this.service.create(data);
     }
 
-    @Put(":id")
-    @ApiBody({ type: updateDto })
+    @Patch(":id")
+    @HttpCode(HttpStatus.OK)
+    @ApiBody({ type: createDto })
+    @ApiResponse({
+      status: HttpStatus.OK,
+      description: "Record updated successfully",
+      type: createDto,
+    })
+    @ApiResponse({
+      status: HttpStatus.BAD_REQUEST,
+      description: "Bad request",
+    })
+    @ApiResponse({
+      status: HttpStatus.NOT_FOUND,
+      description: "Record not found",
+    })
     @UsePipes(new ValidationPipe({ expectedType: updateDto, transform: true }))
     update(@Param("id") id: IdType, @Body() data: Partial<T>): Promise<T> {
       return this.service.update(id, data);
     }
 
     @Delete(":id")
+    @HttpCode(HttpStatus.OK)
+    @ApiResponse({
+      status: HttpStatus.OK,
+      description: "Record deleted successfully",
+      type: createDto,
+    })
     delete(@Param("id") id: IdType): Promise<T> {
       return this.service.delete(id);
     }
 
-    @Put(":id/softdelete")
+    @Patch(":id/softdelete")
+    @HttpCode(HttpStatus.NO_CONTENT)
+    @ApiResponse({
+      status: HttpStatus.NO_CONTENT,
+      description: "Record soft-deleted successfully",
+    })
+    @ApiResponse({
+      status: HttpStatus.NOT_FOUND,
+      description: "Record not found",
+    })
     softDelete(@Param("id") id: IdType): Promise<void> {
       return this.service.softDelete(id);
     }
 
-    @Put(":id/restore")
+    @Patch(":id/restore")
+    @HttpCode(HttpStatus.OK)
+    @ApiResponse({
+      status: HttpStatus.OK,
+      description: "Record restored successfully",
+    })
     restore(@Param("id") id: IdType): Promise<void> {
       return this.service.restore(id);
     }

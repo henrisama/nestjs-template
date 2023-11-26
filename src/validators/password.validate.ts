@@ -40,6 +40,6 @@ export class PasswordValidator implements ValidatorConstraintInterface {
   }
 
   defaultMessage() {
-    return this.response;
+    return `Password: ${this.response}`;
   }
 }

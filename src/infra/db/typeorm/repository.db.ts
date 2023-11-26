@@ -1,9 +1,7 @@
-import * as bcrypt from "bcrypt";
 import { Repository, SelectQueryBuilder } from "typeorm";
 import { IdType, PaginationDto, RepositoryPort } from "../repository.port";
-import { Injectable, Type } from "@nestjs/common";
+import { Injectable, NotFoundException, Type } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { saltOrRounds } from "src/conf/api.conf";
 
 export function generateTypeormRepository<T>(entity: Type<T>): any {
   @Injectable()
@@ -16,11 +14,12 @@ export function generateTypeormRepository<T>(entity: Type<T>): any {
       const queryBuilder: SelectQueryBuilder<T> =
         this.repository.createQueryBuilder(entity.name);
 
-      if (paginationDto.search) {
+      // TODO
+      /* if (paginationDto.search) {
         queryBuilder.where(`${entity.name} LIKE :search`, {
           search: `%${paginationDto.search}%`,
         });
-      }
+      } */
 
       if (paginationDto.page && paginationDto.limit) {
         queryBuilder.skip((paginationDto.page - 1) * paginationDto.limit);
@@ -31,37 +30,31 @@ export function generateTypeormRepository<T>(entity: Type<T>): any {
     }
 
     async findOneById(id: IdType): Promise<T> {
-      return await this.repository.findOneBy(<any>{ id });
+      const entity = await this.repository.findOneBy(<any>{ id });
+
+      if (!entity) {
+        throw new NotFoundException(`Record with ID ${id} not found`);
+      }
+
+      return entity;
     }
 
     async create(createDto: T): Promise<T> {
-      (createDto as any).password = await bcrypt.hash(
-        (createDto as any).password,
-        saltOrRounds,
-      );
-
-      return this.repository.save(new entity(createDto));
+      return await this.repository.save(new entity(createDto));
     }
 
     async update(id: IdType, updateDto: Partial<T>): Promise<T> {
       const entity = await this.findOneById(id);
-
-      if ((updateDto as any).password) {
-        (updateDto as any).password = await bcrypt.hash(
-          (updateDto as any).password,
-          saltOrRounds,
-        );
-      }
-
-      return this.repository.save({ ...entity, ...updateDto });
+      return await this.repository.save({ ...entity, ...updateDto });
     }
 
     async delete(id: IdType): Promise<T> {
       const entity = await this.findOneById(id);
-      return this.repository.remove(entity);
+      return await this.repository.remove(entity);
     }
 
     async softDelete(id: IdType): Promise<void> {
+      await this.findOneById(id);
       await this.repository.softDelete(id);
     }
 
