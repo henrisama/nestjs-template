@@ -7,6 +7,7 @@ import { buildServiceNameFor } from "src/decorators/inject-auto-service";
 import { generateMongoRepository } from "src/infra/db/mongo/repository.db";
 import { buildRepositoryNameFor } from "src/decorators/inject-auto-repository";
 import { generateTypeormRepository } from "src/infra/db/typeorm/repository.db";
+import { IEndpoints } from "src/interfaces/endpoints.interface";
 
 export interface IAutoModuleOptions {
   // Specify the schema for the module. This could be a TypeORM entity or a Mongoose schema.
@@ -24,6 +25,9 @@ export interface IAutoModuleOptions {
   // DTOs for creating and updating entities.
   createDto?: any;
   updateDto?: any;
+
+  // Custom endpoints
+  endpoints?: IEndpoints;
 }
 
 export class AutoModule {
@@ -64,6 +68,7 @@ export class AutoModule {
         options.schema,
         options.createDto,
         options.updateDto,
+        options.endpoints ?? {},
       )
     );
   }

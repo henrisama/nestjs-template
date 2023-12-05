@@ -3,6 +3,6 @@ export enum DatabaseAdapterEnum {
   MONGO = "mongo",
 }
 
-export const DatabaseAdapter = process.env.DATABASE_ADAPTER;
+export const DatabaseAdapter: string = DatabaseAdapterEnum.TYPEORM;
 
-export type IdType = string;
+export type IdType = string; // or number

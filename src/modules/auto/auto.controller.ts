@@ -21,6 +21,8 @@ import { IAutoService } from "./auto.service";
 import { PaginationDto } from "./dtos/pagination.dto";
 import { ApiBody, ApiTags, ApiResponse } from "@nestjs/swagger";
 import { ControllerExceptionFilter } from "src/infra/filters/filter-errors";
+import { IEndpoints } from "src/interfaces/endpoints.interface";
+import { OptionalDecorator } from "src/decorators/optional-decorator";
 
 export interface IAutoController<T> {
   findAll(paginationDto: PaginationDto): Promise<T[]>;
@@ -36,6 +38,15 @@ export function generateController<T>(
   schema: Type<T>,
   createDto: any,
   updateDto: any,
+  {
+    findAll = true,
+    findOneById = true,
+    create = true,
+    update = true,
+    delete: _delete = true,
+    softdelete = true,
+    restore = true,
+  }: IEndpoints,
 ): any {
   @ApiTags(schema.name)
   @UseFilters(new ControllerExceptionFilter())
@@ -46,19 +57,18 @@ export function generateController<T>(
       private readonly service: IAutoService<T>,
     ) {}
 
-    @Get()
+    @OptionalDecorator(Get(), findAll)
     @HttpCode(HttpStatus.OK)
     @ApiResponse({
       status: HttpStatus.OK,
       description: "List of all records",
       type: [createDto],
     })
-    findAll(@Query() paginationDto: PaginationDto): Promise<T[]> {
-      console.log("teste");
-      return this.service.findAll(paginationDto);
+    async findAll(@Query() paginationDto: PaginationDto): Promise<T[]> {
+      return await this.service.findAll(paginationDto);
     }
 
-    @Get(":id")
+    @OptionalDecorator(Get(":id"), findOneById)
     @HttpCode(HttpStatus.OK)
     @ApiResponse({
       status: HttpStatus.OK,
@@ -73,7 +83,7 @@ export function generateController<T>(
       return await this.service.findOneById(id);
     }
 
-    @Post()
+    @OptionalDecorator(Post(), create)
     @HttpCode(HttpStatus.CREATED)
     @ApiBody({ type: createDto })
     @ApiResponse({
@@ -86,11 +96,11 @@ export function generateController<T>(
       description: "Bad request",
     })
     @UsePipes(new ValidationPipe({ expectedType: createDto, transform: true }))
-    create(@Body() data: T): Promise<T> {
-      return this.service.create(data);
+    async create(@Body() data: T): Promise<T> {
+      return await this.service.create(data);
     }
 
-    @Patch(":id")
+    @OptionalDecorator(Patch(":id"), update)
     @HttpCode(HttpStatus.OK)
     @ApiBody({ type: createDto })
     @ApiResponse({
@@ -107,22 +117,25 @@ export function generateController<T>(
       description: "Record not found",
     })
     @UsePipes(new ValidationPipe({ expectedType: updateDto, transform: true }))
-    update(@Param("id") id: IdType, @Body() data: Partial<T>): Promise<T> {
-      return this.service.update(id, data);
+    async update(
+      @Param("id") id: IdType,
+      @Body() data: Partial<T>,
+    ): Promise<T> {
+      return await this.service.update(id, data);
     }
 
-    @Delete(":id")
+    @OptionalDecorator(Delete(":id"), _delete)
     @HttpCode(HttpStatus.OK)
     @ApiResponse({
       status: HttpStatus.OK,
       description: "Record deleted successfully",
       type: createDto,
     })
-    delete(@Param("id") id: IdType): Promise<T> {
-      return this.service.delete(id);
+    async delete(@Param("id") id: IdType): Promise<T> {
+      return await this.service.delete(id);
     }
 
-    @Patch(":id/softdelete")
+    @OptionalDecorator(Patch(":id/softdelete"), softdelete)
     @HttpCode(HttpStatus.NO_CONTENT)
     @ApiResponse({
       status: HttpStatus.NO_CONTENT,
@@ -132,18 +145,18 @@ export function generateController<T>(
       status: HttpStatus.NOT_FOUND,
       description: "Record not found",
     })
-    softDelete(@Param("id") id: IdType): Promise<void> {
-      return this.service.softDelete(id);
+    async softDelete(@Param("id") id: IdType): Promise<void> {
+      return await this.service.softDelete(id);
     }
 
-    @Patch(":id/restore")
+    @OptionalDecorator(Patch(":id/restore"), restore)
     @HttpCode(HttpStatus.OK)
     @ApiResponse({
       status: HttpStatus.OK,
       description: "Record restored successfully",
     })
-    restore(@Param("id") id: IdType): Promise<void> {
-      return this.service.restore(id);
+    async restore(@Param("id") id: IdType): Promise<void> {
+      return await this.service.restore(id);
     }
   }
 
