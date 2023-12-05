@@ -1,11 +1,14 @@
-import { Repository, SelectQueryBuilder } from "typeorm";
-import { IdType, PaginationDto, RepositoryPort } from "../repository.port";
-import { Injectable, NotFoundException, Type } from "@nestjs/common";
+import { IdType } from "src/conf/db.conf";
 import { InjectRepository } from "@nestjs/typeorm";
+import { IRepository } from "../repository.interface";
+import { Repository, SelectQueryBuilder } from "typeorm";
+import { Injectable, NotFoundException, Type } from "@nestjs/common";
+import { PaginationDto } from "src/modules/auto/dtos/pagination.dto";
+import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
 export function generateTypeormRepository<T>(entity: Type<T>): any {
   @Injectable()
-  class TypeOrmRepository implements RepositoryPort<T> {
+  class TypeOrmRepository implements IRepository<T> {
     constructor(
       @InjectRepository(entity) private readonly repository: Repository<T>,
     ) {}
@@ -39,13 +42,29 @@ export function generateTypeormRepository<T>(entity: Type<T>): any {
       return entity;
     }
 
+    async findOneByProperty(propertyName: keyof T, value: any): Promise<T> {
+      const query: QueryDeepPartialEntity<T> = {};
+      query[propertyName.toString()] = value;
+
+      const entity = await this.repository.findOneBy(<any>query);
+
+      if (!entity) {
+        throw new NotFoundException(
+          `Record with ${propertyName.toString()} = ${value} not found`,
+        );
+      }
+
+      return entity;
+    }
+
     async create(createDto: T): Promise<T> {
       return await this.repository.save(new entity(createDto));
     }
 
     async update(id: IdType, updateDto: Partial<T>): Promise<T> {
       const entity = await this.findOneById(id);
-      return await this.repository.save({ ...entity, ...updateDto });
+      await this.repository.save({ ...entity, ...updateDto });
+      return entity;
     }
 
     async delete(id: IdType): Promise<T> {
@@ -54,7 +73,6 @@ export function generateTypeormRepository<T>(entity: Type<T>): any {
     }
 
     async softDelete(id: IdType): Promise<void> {
-      await this.findOneById(id);
       await this.repository.softDelete(id);
     }
 

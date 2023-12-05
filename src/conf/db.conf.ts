@@ -4,3 +4,5 @@ export enum DatabaseAdapterEnum {
 }
 
 export const DatabaseAdapter = process.env.DATABASE_ADAPTER;
+
+export type IdType = string;

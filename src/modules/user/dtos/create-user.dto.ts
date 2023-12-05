@@ -1,7 +1,7 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsEmail, IsNotEmpty, IsString, Validate } from "class-validator";
-import { PasswordValidator } from "src/validators/password.validate";
 import { IUser } from "../user.entity";
+import { ApiProperty } from "@nestjs/swagger";
+import { PasswordValidator } from "src/validators/password.validate";
+import { IsEmail, IsNotEmpty, IsString, Validate } from "class-validator";
 
 export class CreateUserDto implements IUser {
   @ApiProperty()

@@ -1,17 +1,7 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { IdType } from "src/conf/db.conf";
+import { PaginationDto } from "src/modules/auto/dtos/pagination.dto";
 
-export type IdType = string;
-
-export class PaginationDto {
-  @ApiProperty({ required: false })
-  readonly page?: number;
-  @ApiProperty({ required: false })
-  readonly limit?: number;
-  @ApiProperty({ required: false })
-  readonly search?: string;
-}
-
-export abstract class RepositoryPort<T> {
+export abstract class IRepository<T> {
   abstract findAll(paginationDto: PaginationDto): Promise<T[]>;
   abstract findOneById(id: IdType): Promise<T>;
   abstract create(createDto: T): Promise<T>;

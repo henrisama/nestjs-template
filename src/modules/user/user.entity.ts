@@ -1,6 +1,6 @@
 import { ulid } from "ulid";
-import { BaseEntity } from "src/infra/db/typeorm/base.entity";
 import { Entity, Column, PrimaryColumn } from "typeorm";
+import { BaseSchema } from "src/infra/db/typeorm/base.schema";
 
 export interface IUser {
   name: string;
@@ -9,7 +9,7 @@ export interface IUser {
 }
 
 @Entity({ name: "User" })
-export class User extends BaseEntity implements IUser {
+export class User extends BaseSchema implements IUser {
   constructor(user?: any) {
     super();
     Object.assign(this, user);

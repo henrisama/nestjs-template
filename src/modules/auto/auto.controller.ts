@@ -16,19 +16,20 @@ import {
   HttpCode,
 } from "@nestjs/common";
 import { paramCase } from "change-case";
-import { ServicePort } from "./auto.service";
-import { IdType, PaginationDto } from "src/infra/db/repository.port";
+import { IdType } from "src/conf/db.conf";
+import { IAutoService } from "./auto.service";
+import { PaginationDto } from "./dtos/pagination.dto";
 import { ApiBody, ApiTags, ApiResponse } from "@nestjs/swagger";
 import { ControllerExceptionFilter } from "src/infra/filters/filter-errors";
 
-export abstract class ControlerPort<T> {
-  abstract findAll(paginationDto: PaginationDto): Promise<T[]>;
-  abstract findOneById(id: IdType): Promise<T>;
-  abstract create(createDto: any): Promise<T>;
-  abstract update(id: IdType, updateDto: any): Promise<T>;
-  abstract delete(id: IdType): Promise<T>;
-  abstract softDelete(id: IdType): Promise<void>;
-  abstract restore(id: IdType): Promise<void>;
+export interface IAutoController<T> {
+  findAll(paginationDto: PaginationDto): Promise<T[]>;
+  findOneById(id: IdType): Promise<T>;
+  create(createDto: any): Promise<T>;
+  update(id: IdType, updateDto: any): Promise<T>;
+  delete(id: IdType): Promise<T>;
+  softDelete(id: IdType): Promise<void>;
+  restore(id: IdType): Promise<void>;
 }
 
 export function generateController<T>(
@@ -39,12 +40,11 @@ export function generateController<T>(
   @ApiTags(schema.name)
   @UseFilters(new ControllerExceptionFilter())
   @Controller(paramCase(schema.name))
-  class AutoController extends ControlerPort<T> {
+  class AutoController implements IAutoController<T> {
     constructor(
-      @Inject(`${schema.name}Service`) private readonly service: ServicePort<T>,
-    ) {
-      super();
-    }
+      @Inject(`${schema.name}Service`)
+      private readonly service: IAutoService<T>,
+    ) {}
 
     @Get()
     @HttpCode(HttpStatus.OK)
@@ -54,6 +54,7 @@ export function generateController<T>(
       type: [createDto],
     })
     findAll(@Query() paginationDto: PaginationDto): Promise<T[]> {
+      console.log("teste");
       return this.service.findAll(paginationDto);
     }
 

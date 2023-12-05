@@ -1,9 +1,9 @@
 import * as bcrypt from "bcrypt";
 import { User } from "./user.entity";
+import { IdType } from "src/conf/db.conf";
 import { Injectable } from "@nestjs/common";
 import { generateService } from "../auto/auto.service";
 import { saltOrRounds } from "src/conf/api.conf";
-import { IdType } from "src/infra/db/repository.port";
 import { CreateUserDto } from "./dtos/create-user.dto";
 import { UpdateUserDto } from "./dtos/update-user.dto";
 
@@ -20,5 +20,9 @@ export class UserService extends generateService(User) {
     }
 
     return await this.repository.update(id, updateDto);
+  }
+
+  async findByEmail(email: string): Promise<User> {
+    return await this.repository.findOneByProperty("email", email);
   }
 }

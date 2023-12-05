@@ -1,10 +1,12 @@
-import { Injectable } from "@nestjs/common";
 import { Model, model } from "mongoose";
-import { IdType, PaginationDto, RepositoryPort } from "../repository.port";
+import { IdType } from "src/conf/db.conf";
+import { Injectable } from "@nestjs/common";
+import { IRepository } from "../repository.interface";
+import { PaginationDto } from "src/modules/auto/dtos/pagination.dto";
 
 export function generateMongoRepository<T>(): any {
   @Injectable()
-  class MongoRepository implements RepositoryPort<T> {
+  class MongoRepository implements IRepository<T> {
     private model: Model<T>;
 
     constructor(schema: any, modelName: string) {
