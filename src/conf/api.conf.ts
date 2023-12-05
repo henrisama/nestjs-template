@@ -7,3 +7,5 @@ export const swaggerOptions = {
 };
 
 export const saltOrRounds = 10;
+
+export const jwtExpiration = 60 * 60;
