@@ -8,31 +8,27 @@ import {
   Body,
   Type,
   Query,
-  Inject,
   UsePipes,
   ValidationPipe,
   UseFilters,
   HttpStatus,
   HttpCode,
 } from "@nestjs/common";
+import {
+  ApiBody,
+  ApiTags,
+  ApiResponse,
+  ApiQuery,
+  ApiParam,
+} from "@nestjs/swagger";
 import { paramCase } from "change-case";
 import { IdType } from "src/conf/db.conf";
-import { IAutoService } from "./auto.service";
-import { PaginationDto } from "./dtos/pagination.dto";
-import { ApiBody, ApiTags, ApiResponse } from "@nestjs/swagger";
-import { ControllerExceptionFilter } from "src/infra/filters/filter-errors";
-import { IEndpoints } from "src/interfaces/endpoints.interface";
+import { IAutoService } from "./interfaces/auto.service.interface";
 import { OptionalDecorator } from "src/decorators/optional-decorator";
-
-export interface IAutoController<T> {
-  findAll(paginationDto: PaginationDto): Promise<T[]>;
-  findOneById(id: IdType): Promise<T>;
-  create(createDto: any): Promise<T>;
-  update(id: IdType, updateDto: any): Promise<T>;
-  delete(id: IdType): Promise<T>;
-  softDelete(id: IdType): Promise<void>;
-  restore(id: IdType): Promise<void>;
-}
+import { InjectAutoService } from "src/decorators/inject-auto-service";
+import { IAutoEndpoints } from "./interfaces/auto.endpoints.interface";
+import { IAutoController } from "./interfaces/auto.controller.interface";
+import { ControllerExceptionFilter } from "src/infra/filters/filter-errors";
 
 export function generateController<T>(
   schema: Type<T>,
@@ -41,19 +37,20 @@ export function generateController<T>(
   {
     findAll = true,
     findOneById = true,
+    findOneByProperty = true,
     create = true,
     update = true,
     delete: _delete = true,
     softdelete = true,
     restore = true,
-  }: IEndpoints,
+  }: IAutoEndpoints,
 ): any {
   @ApiTags(schema.name)
-  @UseFilters(new ControllerExceptionFilter())
   @Controller(paramCase(schema.name))
+  @UseFilters(new ControllerExceptionFilter())
   class AutoController implements IAutoController<T> {
     constructor(
-      @Inject(`${schema.name}Service`)
+      @InjectAutoService(schema)
       private readonly service: IAutoService<T>,
     ) {}
 
@@ -64,8 +61,15 @@ export function generateController<T>(
       description: "List of all records",
       type: [createDto],
     })
-    async findAll(@Query() paginationDto: PaginationDto): Promise<T[]> {
-      return await this.service.findAll(paginationDto);
+    @ApiQuery({ name: "take", type: Number, required: false })
+    @ApiQuery({ name: "skip", type: Number, required: false })
+    async findAll(
+      @Query("take") take: number,
+      @Query("skip") skip: number,
+    ): Promise<[T[], number]> {
+      take = Number(take || 10);
+      skip = Number(skip || 0);
+      return await this.service.findAll(take, skip);
     }
 
     @OptionalDecorator(Get(":id"), findOneById)
@@ -81,6 +85,27 @@ export function generateController<T>(
     })
     async findOneById(@Param("id") id: IdType): Promise<T> {
       return await this.service.findOneById(id);
+    }
+
+    @OptionalDecorator(Get(":key/:value"), findOneByProperty)
+    @HttpCode(HttpStatus.OK)
+    @ApiResponse({
+      status: HttpStatus.OK,
+      description: "The record with the given ID",
+      type: createDto,
+    })
+    @ApiResponse({
+      status: HttpStatus.NOT_FOUND,
+      description: "Record not found",
+    })
+    @ApiParam({ name: "key", type: String, required: true })
+    @ApiParam({ name: "value", type: String, required: true })
+    async findOneByProperty(
+      @Param("key") key: keyof T,
+      @Param("value") value: any,
+    ): Promise<T> {
+      console.log(key, value);
+      return this.service.findOneByProperty(key, value);
     }
 
     @OptionalDecorator(Post(), create)
@@ -130,6 +155,10 @@ export function generateController<T>(
       status: HttpStatus.OK,
       description: "Record deleted successfully",
       type: createDto,
+    })
+    @ApiResponse({
+      status: HttpStatus.NOT_FOUND,
+      description: "Record not found",
     })
     async delete(@Param("id") id: IdType): Promise<T> {
       return await this.service.delete(id);

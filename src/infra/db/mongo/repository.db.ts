@@ -1,34 +1,29 @@
 import { Model, model } from "mongoose";
 import { IdType } from "src/conf/db.conf";
 import { Injectable } from "@nestjs/common";
-import { IRepository } from "../repository.interface";
-import { PaginationDto } from "src/modules/auto/dtos/pagination.dto";
+import { IAutoRepository } from "src/modules/auto/interfaces/auto.repository.interface";
 
 export function generateMongoRepository<T>(): any {
   @Injectable()
-  class MongoRepository implements IRepository<T> {
+  class MongoRepository implements IAutoRepository<T> {
     private model: Model<T>;
 
     constructor(schema: any, modelName: string) {
       this.model = model(modelName, schema);
     }
 
-    async findAll(paginationDto: PaginationDto): Promise<T[]> {
-      const query = {};
-
-      if (paginationDto.search) {
-        query["name"] = new RegExp(paginationDto.search, "i");
-      }
-
-      return this.model
-        .find(query)
-        .skip((paginationDto.page - 1) * paginationDto.limit)
-        .limit(paginationDto.limit)
-        .exec();
+    async findAll(take: number, skip: number): Promise<[T[], number]> {
+      const entities = await this.model.find().limit(take).skip(skip).exec();
+      const count = await this.model.countDocuments().exec();
+      return [entities, count];
     }
 
     async findOneById(id: IdType): Promise<T> {
       return this.model.findById(id).exec();
+    }
+
+    findOneByProperty(key: keyof T, value: any): Promise<T> {
+      throw new Error("Method not implemented.");
     }
 
     async create(createDto: T): Promise<T> {

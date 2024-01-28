@@ -2,8 +2,8 @@ import * as bcrypt from "bcrypt";
 import { User } from "./user.entity";
 import { IdType } from "src/conf/db.conf";
 import { Injectable } from "@nestjs/common";
-import { generateService } from "../auto/auto.service";
 import { saltOrRounds } from "src/conf/api.conf";
+import { generateService } from "../auto/auto.service";
 import { CreateUserDto } from "./dtos/create-user.dto";
 import { UpdateUserDto } from "./dtos/update-user.dto";
 

@@ -2,33 +2,12 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { generateService } from "./auto.service";
 import { MongooseModule } from "@nestjs/mongoose";
 import { generateController } from "./auto.controller";
+import { generateTypeormRepository } from "./auto.repository";
 import { DatabaseAdapter, DatabaseAdapterEnum } from "src/conf/db.conf";
+import { IAutoModuleOptions } from "./interfaces/auto.module.interface";
 import { buildServiceNameFor } from "src/decorators/inject-auto-service";
 import { generateMongoRepository } from "src/infra/db/mongo/repository.db";
 import { buildRepositoryNameFor } from "src/decorators/inject-auto-repository";
-import { generateTypeormRepository } from "src/infra/db/typeorm/repository.db";
-import { IEndpoints } from "src/interfaces/endpoints.interface";
-
-export interface IAutoModuleOptions {
-  // Specify the schema for the module. This could be a TypeORM entity or a Mongoose schema.
-  schema: any;
-
-  // Optional custom repository.
-  repository?: any;
-
-  // Optional custom service.
-  service?: any;
-
-  // Optional custom controller.
-  controller?: any;
-
-  // DTOs for creating and updating entities.
-  createDto?: any;
-  updateDto?: any;
-
-  // Custom endpoints
-  endpoints?: IEndpoints;
-}
 
 export class AutoModule {
   static forFeature<T>(options: IAutoModuleOptions): any {

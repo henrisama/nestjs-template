@@ -1,6 +1,7 @@
-export interface IEndpoints {
+export interface IAutoEndpoints {
   findAll?: boolean;
   findOneById?: boolean;
+  findOneByProperty?: boolean;
   create?: boolean;
   update?: boolean;
   delete?: boolean;

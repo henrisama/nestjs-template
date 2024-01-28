@@ -1,5 +1,5 @@
-import { IUser } from "../user.entity";
 import { ApiProperty } from "@nestjs/swagger";
+import { IUser } from "../interfaces/user.interface";
 import { PasswordValidator } from "src/validators/password.validate";
 import { IsEmail, IsNotEmpty, IsString, Validate } from "class-validator";
 

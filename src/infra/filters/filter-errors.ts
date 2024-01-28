@@ -11,23 +11,17 @@ export class ControllerExceptionFilter implements ExceptionFilter {
   catch(exception: any, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse();
-    const status =
-      exception instanceof HttpException
-        ? exception.getStatus()
-        : HttpStatus.INTERNAL_SERVER_ERROR;
-
-    let responseMessage: any;
-    if (exception.response) {
-      responseMessage = exception.response.message || null;
+    const message = exception.response?.message ?? exception.message;
+    if (exception instanceof HttpException) {
+      response.status(exception.getStatus()).json({
+        statusCode: exception.getStatus(),
+        message: message,
+      });
+    } else {
+      response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: exception.message,
+      });
     }
-
-    const message =
-      responseMessage || exception.message || "Internal server error";
-
-    response.status(status).json({
-      statusCode: status,
-      timestamp: new Date().toISOString(),
-      message,
-    });
   }
 }

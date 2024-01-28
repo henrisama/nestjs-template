@@ -1,12 +1,7 @@
 import { ulid } from "ulid";
+import { IUser } from "./interfaces/user.interface";
 import { Entity, Column, PrimaryColumn } from "typeorm";
 import { BaseSchema } from "src/infra/db/typeorm/base.schema";
-
-export interface IUser {
-  name: string;
-  email: string;
-  password: string;
-}
 
 @Entity({ name: "User" })
 export class User extends BaseSchema implements IUser {
